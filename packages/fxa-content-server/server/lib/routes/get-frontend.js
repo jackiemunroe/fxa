@@ -32,6 +32,8 @@ module.exports = function() {
     'pair/success',
     'pair/supp',
     'pair/unsupported',
+    'post_verify/secondary_email/add_secondary_email',
+    'post_verify/secondary_email/confirm_secondary_email',
     'primary_email_verified',
     'report_signin',
     'reset_password',
