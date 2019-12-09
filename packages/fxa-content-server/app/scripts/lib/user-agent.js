@@ -20,11 +20,22 @@ const UserAgent = function(userAgent) {
 
     /**
      * Check if the OS is iOS.
+     * Note: this will return `false` for some iPads on iOS that send
+     * desktop (Mac OS) headers.
      *
      * @returns {Boolean}
      */
     isIos() {
       return this.os.name === 'iOS';
+    },
+
+    /**
+     * iPads using FF/Safari on iOS 13+ show a Mac system but iOS family.
+     *
+     * @returns {Boolean}
+     */
+    isIosDesktop() {
+      return /Mac/.test(this.os.name) && /iOS/.test(this.ua);
     },
 
     /**

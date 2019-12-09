@@ -68,7 +68,7 @@ function getFamily(data) {
 }
 
 function getDeviceType(data) {
-  if (getFamily(data.device) || isMobileOS(data.os)) {
+  if (getFamily(data.device) || isMobileOS(data) || isIpadDesktop(data)) {
     if (isTablet(data)) {
       return 'tablet';
     } else {
@@ -77,13 +77,14 @@ function getDeviceType(data) {
   }
 }
 
-function isMobileOS(os) {
-  return MOBILE_OS_FAMILIES.has(os.family);
+function isMobileOS(data) {
+  return MOBILE_OS_FAMILIES.has(data.os.family);
 }
 
 function isTablet(data) {
   return (
     isIpad(data) ||
+    isIpadDesktop(data) ||
     isAndroidTablet(data) ||
     isKindle(data) ||
     isGenericTablet(data)
@@ -92,6 +93,11 @@ function isTablet(data) {
 
 function isIpad(data) {
   return /iPad/.test(data.device.family);
+}
+
+// iPads using FF/Safari on iOS 13+ show a Mac system but iOS family.
+function isIpadDesktop(data) {
+  return /Mac/.test(data.os.family) && /iOS/.test(data.ua.family);
 }
 
 function isAndroidTablet(data) {
@@ -111,7 +117,9 @@ function isGenericTablet(data) {
 }
 
 function getFormFactor(data) {
-  if (data.device.brand !== 'Generic') {
+  if (isIpadDesktop(data)) {
+    return 'iPad';
+  } else if (data.device.brand !== 'Generic') {
     return getFamily(data.device);
   }
 }
