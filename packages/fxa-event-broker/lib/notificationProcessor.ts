@@ -2,6 +2,14 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
+/**
+ * SQS Notification Processor
+ *
+ * Consumes SQS messages, stores new logins for users, and fans out
+ * messages for delivery to relying party PubSub queues.
+ *
+ * @module
+ */
 import { PubSub } from '@google-cloud/pubsub';
 import { SQS } from 'aws-sdk';
 import { StatsD } from 'hot-shots';
@@ -183,6 +191,11 @@ class ServiceNotificationProcessor {
     await Promise.all(notifyClientPromises);
   }
 
+  /**
+   * Process a SQS message, dispatch based on message event type.
+   *
+   * @param sqsMessage Incoming SQS Message
+   */
   private async handleMessage(sqsMessage: SQS.Message) {
     const processingStart = Date.now();
     const body = JSON.parse(sqsMessage.Body || '{}');
