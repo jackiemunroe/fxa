@@ -366,6 +366,55 @@ describe('subscriptions directRoutes', () => {
       assert.deepEqual(response, expected);
     });
   });
+
+  describe('POST /oauth/subscriptions/active', () => {
+    let reqOpts, stripeHelper;
+    const customer = deepCopy(customerFixture);
+
+    beforeEach(() => {
+      reqOpts = {
+        ...requestOptions,
+        method: 'POST',
+        query: { uid: UID, email: 'testo@blackhole.example.io' },
+        ...VALID_REQUEST,
+      };
+
+      stripeHelper = sinon.createStubInstance(StripeHelper);
+      stripeHelper.customer.returns(customer);
+      stripeHelper.expandResource.returns(stripePlan);
+      stripeHelper.findPlanById.returns(PLANS[0]);
+      stripeHelper.formatSubscriptionsForSupport.restore();
+    });
+
+    it('handles 3DSecure redirect error', async () => {
+      const expected = {
+        redirectToUrl: {
+          url: 'https://www.example.com',
+        },
+      };
+      const redirectActionRequired = error.redirectActionRequired(expected);
+
+      stripeHelper = sinon.createStubInstance(StripeHelper);
+      stripeHelper.createCustomer.returns(customer);
+      stripeHelper.createSubscription.throws(redirectActionRequired);
+
+      const response = await runTest(
+        '/oauth/subscriptions/active',
+        reqOpts,
+        stripeHelper
+      );
+
+      console.log(response);
+      assert.isTrue(
+        stripeHelper.customer.calledOnceWith(
+          reqOpts.query.uid,
+          reqOpts.query.email
+        ),
+        'customer not called as expected'
+      );
+      assert.deepEqual(response, expected);
+    });
+  });
 });
 
 describe('handleAuth', () => {

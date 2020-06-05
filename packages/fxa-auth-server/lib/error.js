@@ -102,6 +102,7 @@ const ERRNO = {
   PAYMENT_FAILED: 186,
   SUBSCRIPTION_ALREADY_EXISTS: 187,
   UNKNOWN_SUBSCRIPTION_FOR_SOURCE: 188,
+  SECURE_AUTHENTICATION_REQUIRED: 189,
 
   SERVER_BUSY: 201,
   FEATURE_NOT_ENABLED: 202,
@@ -1274,6 +1275,15 @@ AppError.userAlreadySubscribedToProduct = () => {
     error: 'Already subscribed to product with different plan',
     errno: ERRNO.SUBSCRIPTION_ALREADY_EXISTS,
     message: 'User already subscribed to product with different plan.',
+  });
+};
+
+AppError.redirectActionRequired = (redirectToUrl) => {
+  return new AppError({
+    code: 300,
+    error: '3DS authentication required',
+    errno: ERRNO.SECURE_AUTHENTICATION_REQUIRED,
+    redirectToUrl: redirectToUrl,
   });
 };
 

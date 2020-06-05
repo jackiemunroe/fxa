@@ -743,7 +743,9 @@ class StripeHelper {
    * 1. Calls Stripe Helper to Subscribe a Customer to a selected Plan
    * 2. Checks the status of the Invoice returned from the Subscription creation
    *  2a. If Invoice is marked as Paid: return newly created Subscription
-   *  2b. If Invoice is NOT marked as Paid: throw error
+   *  2b. If Invoice is NOT marked as Paid:
+   *    2b1. If PaymentIntent requires next steps that are redirect: throw error with redirect information
+   *    2b2. Else: throw an error
    *
    *
    * @param {Customer} customer
@@ -774,9 +776,23 @@ class StripeHelper {
       throw err;
     }
 
-    if (
-      !this.paidInvoice(/** @type {Invoice} */ (subscription.latest_invoice))
-    ) {
+    const latest_invoice = subscription.latest_invoice;
+
+    if (!this.paidInvoice(/** @type {Invoice} */ (latest_invoice))) {
+      /**
+       * Check to see if the payment requires additional steps for
+       * 3DSecure authentication, if so, return the necessary information
+       * to allow for the customer to complete the payment process
+       * https://stripe.com/docs/payments/3d-secure#manual-redirect
+       */
+      if (
+        latest_invoice.payment_intent.status === 'requires_action' &&
+        latest_invoice.payment_intent.next_action.type === 'redirect_to_url'
+      ) {
+        throw error.redirectActionRequired(
+          latest_invoice.payment_intent.next_action.redirect_to_url
+        );
+      }
       throw error.paymentFailed();
     }
     return subscription;
